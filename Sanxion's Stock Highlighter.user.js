@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         Sanxion's Stock Highlighter
-// @namespace    http://tampermonkey.net/
+// @namespace    sanxion.tc.stocktickerhighlighter
 // @version      1.4
 // @description  Highlights stock ticker of choice
-// @author       Sanxion
+// @author       Sanxion [765420]
 // @match        https://www.torn.com/page.php?sid=stocks*
+// @updateURL    https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
+// @downloadURL  https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // @run-at       document-end
 // @grant        none
 // ==/UserScript==
