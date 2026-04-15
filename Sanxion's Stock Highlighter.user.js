@@ -3,7 +3,7 @@
 // @namespace    sanxion.tc.stocktickerhighlighter
 // @version      1.4
 // @description  Highlights stock ticker of choice
-// @author       Sanxion [765420]
+// @author       Sanxion [29876540]
 // @match        https://www.torn.com/page.php?sid=stocks*
 // @updateURL    https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // @downloadURL  https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
