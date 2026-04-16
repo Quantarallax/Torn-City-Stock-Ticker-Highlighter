@@ -15,4 +15,4 @@ I put this together as I tend to have one stock I'm building towards, but want t
 
 Any questions, just message me in-game.
 
-Sanxion [2987640] https://www.torn.com/profiles.php?XID=2987640
+Sanxion [2987640] https://www.torn.com/2987640
