@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.1
+// @version      2.2
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
@@ -15,17 +15,19 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.1';
+    const SCRIPT_VERSION = '2.2';
 
     // ===================== STATCOUNTER =====================
-    // Torn's Content Security Policy blocks injected <script> tags from
-    // third-party origins. However, image requests use the img-src directive
-    // (not script-src), so a plain Image() pixel bypasses the CSP entirely.
-    // This is the same technique Statcounter uses in its own <noscript> fallback.
-    // No @grant permissions are required.
+    // Torn's CSP blocks injected <script> tags from third-party origins.
+    // A tracking pixel via <img> uses the img-src directive instead, so it
+    // is not blocked. The image element is appended to the DOM to prevent
+    // the browser garbage-collecting the object before the request fires.
     function pingStatcounter() {
-        const img = new Image();
+        const img = document.createElement('img');
         img.src = 'https://c.statcounter.com/13222569/0/112bcd44/1/';
+        img.alt = '';
+        img.style.cssText = 'display:none;position:absolute;width:1px;height:1px;';
+        document.body.appendChild(img);
     }
 
     if (document.readyState === 'complete') {
@@ -35,10 +37,7 @@
     }
 
     // ===================== TICKER -> NAME LOOKUP =====================
-    // Hardcoded fallback (current as of script publication). The script also
-    // refreshes this from the public Tornsy API in the background so it stays
-    // current as Torn adds/removes stocks.
-    const FALLBACK_STOCKS = {
+    const STOCKS = {
         "ASS": "Alcoholics Synonymous",
         "BAG": "Big Al's Gun Shop",
         "CBD": "Herbal Releaf Co.",
@@ -76,38 +75,6 @@
         "WSU": "West Side University",
         "YAZ": "Yazoo"
     };
-
-    let STOCKS = Object.assign({}, FALLBACK_STOCKS);
-
-    // Use the cached list if it is fresh (< 7 days old)
-    const CACHE_KEY = 'sanxion_stocks_cache_v1';
-    const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-    try {
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (raw) {
-            const cached = JSON.parse(raw);
-            if (cached && cached.ts && (Date.now() - cached.ts) < CACHE_TTL_MS && cached.map) {
-                STOCKS = Object.assign({}, FALLBACK_STOCKS, cached.map);
-            }
-        }
-    } catch (_) {}
-
-    // Background refresh from Tornsy (no API key required).
-    fetch('https://tornsy.com/api/stocks')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-            if (!data || !Array.isArray(data.data)) return;
-            const map = {};
-            data.data.forEach(s => {
-                if (s && s.stock && s.name) map[String(s.stock).toUpperCase()] = String(s.name);
-            });
-            if (Object.keys(map).length) {
-                STOCKS = Object.assign({}, FALLBACK_STOCKS, map);
-                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), map })); } catch (_) {}
-                if (input && input.value) highlightStock();
-            }
-        })
-        .catch(() => { /* offline / CORS — fallback list still works */ });
 
     // ===================== UI =====================
     const searchBar = document.createElement('div');
