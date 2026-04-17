@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      1.8
+// @version      1.9
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
@@ -15,20 +15,23 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '1.8';
+    const SCRIPT_VERSION = '1.9';
 
     // ===================== STATCOUNTER =====================
-    (function injectStatcounter() {
+    // Deferred until window 'load' fires so it behaves as if placed just before
+    // </body> in a normal page — this is the condition Statcounter needs to fire.
+    // If 'load' has already fired (e.g. the userscript runs late) we inject immediately.
+    function injectStatcounter() {
         const cfg = document.createElement('script');
         cfg.type = 'text/javascript';
         cfg.text = 'var sc_project=13222569; var sc_invisible=1; var sc_security="112bcd44";';
-        document.head.appendChild(cfg);
+        document.body.appendChild(cfg);
 
         const lib = document.createElement('script');
         lib.type = 'text/javascript';
         lib.async = true;
         lib.src = 'https://www.statcounter.com/counter/counter.js';
-        document.head.appendChild(lib);
+        document.body.appendChild(lib);
 
         const ns = document.createElement('noscript');
         ns.innerHTML =
@@ -36,7 +39,13 @@
             '<img class="statcounter" src="https://c.statcounter.com/13222569/0/112bcd44/1/" ' +
             'alt="site stats" referrerPolicy="no-referrer-when-downgrade"></a></div>';
         document.body.appendChild(ns);
-    })();
+    }
+
+    if (document.readyState === 'complete') {
+        injectStatcounter();
+    } else {
+        window.addEventListener('load', injectStatcounter, { once: true });
+    }
 
     // ===================== TICKER -> NAME LOOKUP =====================
     // Hardcoded fallback (current as of script publication). The script also
