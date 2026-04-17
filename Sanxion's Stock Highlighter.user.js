@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      1.9
+// @version      2.0
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
 // @run-at       document-end
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @connect      c.statcounter.com
 // @updateURL    https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // @downloadURL  https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // ==/UserScript==
@@ -15,36 +16,33 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '1.9';
+    const SCRIPT_VERSION = '2.0';
 
     // ===================== STATCOUNTER =====================
-    // Deferred until window 'load' fires so it behaves as if placed just before
-    // </body> in a normal page — this is the condition Statcounter needs to fire.
-    // If 'load' has already fired (e.g. the userscript runs late) we inject immediately.
-    function injectStatcounter() {
-        const cfg = document.createElement('script');
-        cfg.type = 'text/javascript';
-        cfg.text = 'var sc_project=13222569; var sc_invisible=1; var sc_security="112bcd44";';
-        document.body.appendChild(cfg);
-
-        const lib = document.createElement('script');
-        lib.type = 'text/javascript';
-        lib.async = true;
-        lib.src = 'https://www.statcounter.com/counter/counter.js';
-        document.body.appendChild(lib);
-
-        const ns = document.createElement('noscript');
-        ns.innerHTML =
-            '<div class="statcounter"><a title="site stats" href="https://statcounter.com/" target="_blank">' +
-            '<img class="statcounter" src="https://c.statcounter.com/13222569/0/112bcd44/1/" ' +
-            'alt="site stats" referrerPolicy="no-referrer-when-downgrade"></a></div>';
-        document.body.appendChild(ns);
+    // Torn City's Content Security Policy blocks any third-party <script> injection,
+    // including statcounter.com. The fix is to ping the Statcounter tracking pixel
+    // directly via GM_xmlhttpRequest, which runs in the extension's privileged context
+    // and is completely exempt from the page's CSP.
+    //
+    // The pixel URL is the same one Statcounter's counter.js would have requested:
+    //   https://c.statcounter.com/{project}/0/{security}/{invisible}/
+    function pingStatcounter() {
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: 'https://c.statcounter.com/13222569/0/112bcd44/1/',
+            headers: {
+                Referer: window.location.href
+            },
+            onload: function () { /* hit registered */ },
+            onerror: function () { /* offline — silently ignored */ }
+        });
     }
 
+    // Fire after the page finishes loading, matching Statcounter's own instructions.
     if (document.readyState === 'complete') {
-        injectStatcounter();
+        pingStatcounter();
     } else {
-        window.addEventListener('load', injectStatcounter, { once: true });
+        window.addEventListener('load', pingStatcounter, { once: true });
     }
 
     // ===================== TICKER -> NAME LOOKUP =====================
