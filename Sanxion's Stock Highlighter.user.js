@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.0
+// @version      2.1
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
 // @run-at       document-end
-// @grant        GM_xmlhttpRequest
-// @connect      c.statcounter.com
+// @grant        none
 // @updateURL    https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // @downloadURL  https://github.com/Quantarallax/Torn-City-Stock-Ticker-Highlighter/raw/refs/heads/main/Sanxion's%20Stock%20Highlighter.user.js
 // ==/UserScript==
@@ -16,29 +15,19 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.0';
+    const SCRIPT_VERSION = '2.1';
 
     // ===================== STATCOUNTER =====================
-    // Torn City's Content Security Policy blocks any third-party <script> injection,
-    // including statcounter.com. The fix is to ping the Statcounter tracking pixel
-    // directly via GM_xmlhttpRequest, which runs in the extension's privileged context
-    // and is completely exempt from the page's CSP.
-    //
-    // The pixel URL is the same one Statcounter's counter.js would have requested:
-    //   https://c.statcounter.com/{project}/0/{security}/{invisible}/
+    // Torn's Content Security Policy blocks injected <script> tags from
+    // third-party origins. However, image requests use the img-src directive
+    // (not script-src), so a plain Image() pixel bypasses the CSP entirely.
+    // This is the same technique Statcounter uses in its own <noscript> fallback.
+    // No @grant permissions are required.
     function pingStatcounter() {
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: 'https://c.statcounter.com/13222569/0/112bcd44/1/',
-            headers: {
-                Referer: window.location.href
-            },
-            onload: function () { /* hit registered */ },
-            onerror: function () { /* offline — silently ignored */ }
-        });
+        const img = new Image();
+        img.src = 'https://c.statcounter.com/13222569/0/112bcd44/1/';
     }
 
-    // Fire after the page finishes loading, matching Statcounter's own instructions.
     if (document.readyState === 'complete') {
         pingStatcounter();
     } else {
@@ -166,7 +155,6 @@
         creditsPanel.style.display = open ? 'none' : 'block';
     });
 
-    // Stop drag from starting on links inside the credits panel
     creditsPanel.addEventListener('mousedown', (e) => e.stopPropagation());
 
     // ===================== DRAGGABLE =====================
@@ -218,8 +206,6 @@
         const upper = trimmed.toUpperCase();
         if (STOCKS[upper]) return { needle: STOCKS[upper], full: STOCKS[upper], viaTicker: upper };
 
-        // Not a known ticker — treat as a partial company name.
-        // Require >= 2 characters to avoid spamming highlights on a single keystroke.
         if (trimmed.length < 2) return null;
         return { needle: trimmed, full: null, viaTicker: null };
     }
@@ -270,7 +256,7 @@
 
     input.addEventListener('input', highlightStock);
 
-    // React / Torn Tools re-render the list on interactions. Throttle re-runs with rAF.
+    // React / Torn Tools re-render the list. Throttle re-runs with rAF.
     let pending = false;
     const observer = new MutationObserver(() => {
         if (pending) return;
