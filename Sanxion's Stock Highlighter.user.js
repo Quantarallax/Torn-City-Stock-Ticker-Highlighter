@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      1.7
+// @version      1.8
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
@@ -13,6 +13,9 @@
 
 (function () {
     'use strict';
+
+    const SCRIPT_NAME = 'Torn City - Stock Highlighter';
+    const SCRIPT_VERSION = '1.8';
 
     // ===================== STATCOUNTER =====================
     (function injectStatcounter() {
@@ -80,7 +83,7 @@
 
     let STOCKS = Object.assign({}, FALLBACK_STOCKS);
 
-    // Use the cached list if it's fresh (< 7 days old)
+    // Use the cached list if it is fresh (< 7 days old)
     const CACHE_KEY = 'sanxion_stocks_cache_v1';
     const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
     try {
@@ -132,7 +135,9 @@
                     style="background: #444; color: #fff; border: 1px solid #666; border-radius: 4px;
                            padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">?</button>
         </div>
-        <div id="creditsPanel" style="display: none; border-top: 1px solid #444; padding-top: 6px; font-size: 11px; color: #ddd; text-align: center;">
+        <div id="creditsPanel" style="display: none; border-top: 1px solid #444; padding-top: 6px; font-size: 11px; color: #ddd; text-align: center; line-height: 1.6;">
+            <strong style="color: #fff;">${SCRIPT_NAME}</strong>
+            <span style="color: #888; margin-left: 4px;">v${SCRIPT_VERSION}</span><br>
             Written by
             <a href="https://www.torn.com/profiles.php?XID=2987640" target="_blank"
                style="color: #00ff88; text-decoration: underline;">Sanxion [2987640]</a>
@@ -161,8 +166,6 @@
     let isDragging = false;
     let offsetX, offsetY;
 
-    // Only initiate drag from the drag handle / row chrome, not from the input,
-    // the credits button, or the credits panel itself.
     row.addEventListener('mousedown', (e) => {
         if (e.target === input || e.target === creditsBtn || e.target === resolved) return;
         isDragging = true;
@@ -183,7 +186,6 @@
         searchBar.style.cursor = 'grab';
     });
 
-    // Cosmetic: dragHandle keeps the move cursor
     dragHandle.style.cursor = 'move';
 
     // ===================== HIGHLIGHT LOGIC =====================
@@ -200,8 +202,8 @@
 
     // Resolve user input to a search needle.
     //   "MCS"      -> "Mc Smoogle Corp"  (looked up in STOCKS)
-    //   "Mc Smo"   -> "Mc Smo"           (used as-is — partial name)
-    //   "feathery" -> "feathery"         (used as-is — partial name)
+    //   "Mc Smo"   -> "Mc Smo"           (used as-is, partial name)
+    //   "feathery" -> "feathery"         (used as-is, partial name)
     function resolveNeedle(raw) {
         const trimmed = (raw || '').trim();
         if (!trimmed) return null;
@@ -209,14 +211,14 @@
         const upper = trimmed.toUpperCase();
         if (STOCKS[upper]) return { needle: STOCKS[upper], full: STOCKS[upper], viaTicker: upper };
 
-        // Not a known ticker — treat as a (partial) company name.
-        // Require >= 2 characters to avoid spamming highlights from a single keystroke.
+        // Not a known ticker — treat as a partial company name.
+        // Require >= 2 characters to avoid spamming highlights on a single keystroke.
         if (trimmed.length < 2) return null;
         return { needle: trimmed, full: null, viaTicker: null };
     }
 
     // Find candidate stock rows. Native Torn uses obfuscated React class names
-    // like `stock-list___xxxxx`. Torn Tools / TornPDA add extra attributes.
+    // like stock-list___xxxxx. Torn Tools / TornPDA add extra attributes.
     function findStockRows() {
         const out = new Set();
         document.querySelectorAll('[data-stock], [data-ticker]').forEach(el => out.add(el));
@@ -242,15 +244,15 @@
         const needleUpper = r.needle.toUpperCase();
         const rows = findStockRows();
 
-        rows.forEach(row => {
-            const text = (row.innerText || '').toUpperCase();
+        rows.forEach(stockRow => {
+            const text = (stockRow.innerText || '').toUpperCase();
             if (text.includes(needleUpper)) {
-                row.style.outline = HIGHLIGHT_OUTLINE;
-                row.style.backgroundColor = HIGHLIGHT_BG;
-                row.setAttribute('data-sanxion-highlighted', '1');
+                stockRow.style.outline = HIGHLIGHT_OUTLINE;
+                stockRow.style.backgroundColor = HIGHLIGHT_BG;
+                stockRow.setAttribute('data-sanxion-highlighted', '1');
             }
         });
-        // NOTE: no scrollIntoView — user requested no auto-scroll.
+        // No scrollIntoView — user requested no auto-scroll.
     }
 
     // Restore previous selection
@@ -261,7 +263,7 @@
 
     input.addEventListener('input', highlightStock);
 
-    // React/Torn Tools both re-render the list. Throttle re-runs with rAF.
+    // React / Torn Tools re-render the list on interactions. Throttle re-runs with rAF.
     let pending = false;
     const observer = new MutationObserver(() => {
         if (pending) return;
