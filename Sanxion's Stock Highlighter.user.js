@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.3
+// @version      2.4
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @match        https://www.torn.com/page.php?sid=stocks*
@@ -15,7 +15,26 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.3';
+    const SCRIPT_VERSION = '2.4';
+
+    // ===================== STATCOUNTER =====================
+    // Torn's CSP blocks injected <script> tags from third-party origins.
+    // A tracking pixel via <img> uses the img-src directive instead, so it
+    // is not blocked. The image element is appended to the DOM to prevent
+    // the browser garbage-collecting the object before the request fires.
+    function pingStatcounter() {
+        const img = document.createElement('img');
+        img.src = 'https://c.statcounter.com/13222569/0/112bcd44/1/';
+        img.alt = '';
+        img.style.cssText = 'display:none;position:absolute;width:1px;height:1px;';
+        document.body.appendChild(img);
+    }
+
+    if (document.readyState === 'complete') {
+        pingStatcounter();
+    } else {
+        window.addEventListener('load', pingStatcounter, { once: true });
+    }
 
     // ===================== TICKER -> NAME LOOKUP =====================
     const STOCKS = {
