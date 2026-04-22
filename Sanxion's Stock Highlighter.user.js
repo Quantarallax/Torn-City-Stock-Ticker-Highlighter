@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.4
+// @version      2.5
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @license      MIT
@@ -16,7 +16,7 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.4';
+    const SCRIPT_VERSION = '2.5';
 
     // ===================== STATCOUNTER =====================
     // Fires a 1x1 invisible tracking pixel to c.statcounter.com by appending
