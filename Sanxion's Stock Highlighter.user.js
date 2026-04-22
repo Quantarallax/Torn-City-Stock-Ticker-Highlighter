@@ -4,6 +4,7 @@
 // @version      2.4
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
+// @license      MIT
 // @match        https://www.torn.com/page.php?sid=stocks*
 // @run-at       document-end
 // @grant        none
@@ -18,10 +19,10 @@
     const SCRIPT_VERSION = '2.4';
 
     // ===================== STATCOUNTER =====================
-    // Torn's CSP blocks injected <script> tags from third-party origins.
-    // A tracking pixel via <img> uses the img-src directive instead, so it
-    // is not blocked. The image element is appended to the DOM to prevent
-    // the browser garbage-collecting the object before the request fires.
+    // Fires a 1x1 invisible tracking pixel to c.statcounter.com by appending
+    // a hidden <img> element to the page body. Waits for window.load so it
+    // behaves like a standard bottom-of-page analytics snippet.
+    // { once: true } removes the listener automatically after it fires.
     function pingStatcounter() {
         const img = document.createElement('img');
         img.src = 'https://c.statcounter.com/13222569/0/112bcd44/1/';
