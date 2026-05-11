@@ -1,4 +1,4 @@
-# Torn-City-Stock-Ticker-Highlighter
+# Torn City Stock Ticker Highlighter
 Highlights a single Stock listing of your choice.
 
 Install into TamperMonkey https://www.tampermonkey.net/
