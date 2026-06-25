@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.5
+// @version      2.7
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @license      MIT
@@ -16,7 +16,7 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.5';
+    const SCRIPT_VERSION = '2.7';
 
     // ===================== STATCOUNTER =====================
     // Fires a 1x1 invisible tracking pixel to c.statcounter.com by appending
@@ -109,6 +109,17 @@
     `;
 
     document.body.appendChild(searchBar);
+
+    // Restore saved window position (overrides the default centred transform)
+    try {
+        const pos = JSON.parse(localStorage.getItem('sanxion_bar_pos'));
+        if (pos && pos.left && pos.top) {
+            searchBar.style.transform = 'none';
+            searchBar.style.left = pos.left;
+            searchBar.style.top = pos.top;
+        }
+    } catch (_) {}
+
     const input = document.getElementById('stockSearch');
     const resolved = document.getElementById('stockResolved');
     const creditsBtn = document.getElementById('creditsBtn');
@@ -147,6 +158,14 @@
     document.addEventListener('mouseup', () => {
         isDragging = false;
         searchBar.style.cursor = 'grab';
+        if (searchBar.style.left) {
+            try {
+                localStorage.setItem('sanxion_bar_pos', JSON.stringify({
+                    left: searchBar.style.left,
+                    top: searchBar.style.top
+                }));
+            } catch (_) {}
+        }
     });
 
     dragHandle.style.cursor = 'move';
@@ -190,12 +209,16 @@
         return Array.from(out);
     }
 
-    function highlightStock() {
-        const raw = input.value || '';
-        try { localStorage.setItem('sanxion_highlighted_stock', raw); } catch (_) {}
+    // lastSearch is the single source of truth for the current search term.
+    // It persists in memory across observer/timeout calls and is only written
+    // to localStorage when the user explicitly types — never by auto-refresh
+    // triggers — so Torn's periodic page refresh cannot overwrite it with ''.
+    let lastSearch = '';
 
-        clearHighlights();
+    function highlightStock() {
+        const raw = lastSearch;
         resolved.textContent = '';
+        clearHighlights();
 
         const r = resolveNeedle(raw);
         if (!r) return;
@@ -216,13 +239,21 @@
         // No scrollIntoView — user requested no auto-scroll.
     }
 
-    // Restore previous selection
+    // Restore saved search term on load; set both lastSearch and the visible input.
     try {
         const saved = localStorage.getItem('sanxion_highlighted_stock');
-        if (saved) input.value = saved;
+        if (saved) {
+            lastSearch = saved;
+            input.value = saved;
+        }
     } catch (_) {}
 
-    input.addEventListener('input', highlightStock);
+    // Only write to localStorage when the user types — never during auto-refresh.
+    input.addEventListener('input', () => {
+        lastSearch = input.value || '';
+        try { localStorage.setItem('sanxion_highlighted_stock', lastSearch); } catch (_) {}
+        highlightStock();
+    });
 
     // React / Torn Tools re-render the list. Throttle re-runs with rAF.
     let pending = false;
@@ -231,7 +262,7 @@
         pending = true;
         requestAnimationFrame(() => {
             pending = false;
-            if ((input.value || '').trim().length >= 2) highlightStock();
+            if ((lastSearch || '').trim().length >= 2) highlightStock();
         });
     });
 
