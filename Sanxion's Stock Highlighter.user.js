@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Torn City - Stock Highlighter
 // @namespace    sanxion.tc.stockhighlighter
-// @version      2.7
+// @version      2.8
 // @description  Highlights a stock by 3-letter ticker OR company-name fragment. Works with or without Torn Tools.
 // @author       Sanxion [2987640]
 // @license      MIT
@@ -16,7 +16,7 @@
     'use strict';
 
     const SCRIPT_NAME = 'Torn City - Stock Highlighter';
-    const SCRIPT_VERSION = '2.7';
+    const SCRIPT_VERSION = '2.8';
 
     // ===================== STATCOUNTER =====================
     // Fires a 1x1 invisible tracking pixel to c.statcounter.com by appending
@@ -99,12 +99,14 @@
                     style="background: #444; color: #fff; border: 1px solid #666; border-radius: 4px;
                            padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: bold;">?</button>
         </div>
-        <div id="creditsPanel" style="display: none; border-top: 1px solid #444; padding-top: 6px; font-size: 11px; color: #ddd; text-align: center; line-height: 1.6;">
+        <div id="creditsPanel" style="display: none; border-top: 1px solid #444; padding-top: 6px; font-size: 11px; color: #ddd; text-align: center; line-height: 1.8;">
             <strong style="color: #fff;">${SCRIPT_NAME}</strong>
             <span style="color: #888; margin-left: 4px;">v${SCRIPT_VERSION}</span><br>
             Written by
             <a href="https://www.torn.com/profiles.php?XID=2987640" target="_blank"
-               style="color: #00ff88; text-decoration: underline;">Sanxion [2987640]</a>
+               style="color: #00ff88; text-decoration: underline;">Sanxion [2987640]</a><br>
+            <a href="https://greasyfork.org/en/users/1593713-quantarallax?sort=total_installs" target="_blank"
+               style="color: #9cf; text-decoration: underline;">Sanxion's Other Scripts</a>
         </div>
     `;
 
